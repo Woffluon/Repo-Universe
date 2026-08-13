@@ -20,10 +20,12 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); scroll-behavior: smooth; }
+html { background: var(--bg); scroll-behavior: smooth; overflow-x: hidden; }
 body {
   margin: 0;
   min-width: 320px;
+  max-width: 100vw;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: "Geist", "Avenir Next", "Segoe UI Variable", ui-sans-serif, system-ui, sans-serif;
@@ -394,11 +396,92 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 @media (max-width: 700px) {
   :root { --shell: calc(100vw - 28px); }
   .desktop-only, .desktop-github { display: none !important; }
-  .site-header { min-height: 70px; }.site-brand-island { min-height: 44px; }.site-nav-island { min-height: 44px; font-size: 11px; }.site-nav-island a { padding-inline: 10px; }
-  .hero { min-height: 0; padding: 72px 0 44px; gap: 18px; }.hero h1 { font-size: clamp(48px,15.2vw,70px); max-width: 100%; }.hero-lede { font-size: 15px; margin-bottom: 25px; }
-  .repo-search-control { align-items: stretch; min-height: 0; flex-wrap: wrap; }.repo-search-control > svg { margin: 18px 8px 18px 16px; }.repo-search input { min-height: 54px; padding-left: 5px; }.repo-search-submit { width: 100%; min-height: 50px; justify-content: center; }
-  .repo-search-compact .repo-search-submit { width: auto; }.repo-search-compact .repo-search-control { flex-wrap: nowrap; }
-  .example-links { line-height: 1.7; }.landing-preview { min-height: 390px; transform: scale(.97); margin: -5px -12px 0; }.preview-orbit-c { width: 420px; }.preview-object-label { transform: scale(.9); }.preview-readout { display: none; }
+  .site-header { min-height: 64px; }
+  .site-brand-island { min-height: 40px; padding: 6px 12px 6px 8px; font-size: 13px; }
+  .site-nav-island { min-height: 40px; font-size: 11px; }
+  .site-nav-island a { padding-inline: 9px; min-height: 32px; }
+  
+  .hero { min-height: 0; padding: 48px 0 36px; gap: 24px; }
+  .hero h1 {
+    font-size: clamp(30px, 9.2vw, 48px);
+    max-width: 100%;
+    line-height: 1.02;
+    letter-spacing: -.045em;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  .hero-lede { font-size: 15px; margin-bottom: 22px; line-height: 1.55; }
+  
+  .repo-search { width: 100%; max-width: 100%; }
+  .repo-search-control {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  .repo-search-control > svg {
+    position: absolute;
+    left: 14px;
+    top: 17px;
+    margin: 0;
+  }
+  .repo-search input {
+    width: 100%;
+    min-height: 52px;
+    padding-left: 44px;
+    padding-right: 14px;
+    font-size: 14px;
+  }
+  .repo-search-submit {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    border-top: 1px solid rgba(194, 213, 236, .12);
+    font-size: 14px;
+  }
+  
+  .repo-search-compact .repo-search-control {
+    flex-direction: row;
+    align-items: center;
+  }
+  .repo-search-compact .repo-search-control > svg {
+    position: static;
+    margin-left: 14px;
+  }
+  .repo-search-compact .repo-search input {
+    padding-left: 8px;
+    min-height: 48px;
+  }
+  .repo-search-compact .repo-search-submit {
+    width: auto;
+    border-top: 0;
+  }
+  
+  .example-links { line-height: 1.7; gap: 8px 12px; }
+  
+  .landing-preview {
+    width: 100%;
+    max-width: 100%;
+    min-height: 300px;
+    aspect-ratio: auto;
+    transform: scale(.84);
+    transform-origin: center center;
+    margin: -35px 0 -45px;
+    overflow: visible;
+  }
+  .preview-orbit-c { width: 330px; height: 174px; }
+  .preview-orbit-b { width: 250px; height: 124px; }
+  .preview-orbit-a { width: 160px; height: 80px; }
+  .preview-star { width: 78px; height: 78px; }
+  .preview-language-a { right: 4%; top: 22%; }
+  .preview-language-b { left: 4%; bottom: 22%; }
+  .preview-object-label strong { font-size: 11px; }
+  .preview-object-label span { font-size: 8px; }
+  .preview-readout { display: none; }
+
   .system-legend { padding: 88px 0; }.legend-grid { grid-template-columns: 1fr; gap: 10px; }.legend-grid article, .legend-grid .legend-primary, .legend-grid .legend-wide, .legend-grid article:nth-child(2), .legend-grid article:nth-child(3) { grid-column: 1; min-height: 150px; }
   .landing-coda { min-height: 390px; align-items: flex-start; justify-content: center; flex-direction: column; gap: 34px; }.footer { min-height: 140px; align-items: flex-start; justify-content: center; flex-direction: column; gap: 18px; }.footer div { flex-wrap: wrap; gap: 14px 20px; }
   .prose-shell { margin-top: 78px; }.prose-shell h1 { font-size: 46px; }
