@@ -42,9 +42,9 @@ export function UniverseCanvas({
         const probeContext = probe.getContext('webgl2') || probe.getContext('webgl')
         if (!probeContext) throw new Error('WebGL unavailable')
         probeContext.getExtension('WEBGL_lose_context')?.loseContext()
-        const module = await import('./engine/UniverseEngine')
+        const engineModule = await import('./engine/UniverseEngine')
         if (cancelled) return
-        engine = new module.UniverseEngine(container, model, {
+        engine = new engineModule.UniverseEngine(container, model, {
           quality,
           reducedMotion,
           onHover,

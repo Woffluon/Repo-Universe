@@ -7,9 +7,17 @@ export function getSiteUrl(): URL {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim()
   if (configured) {
     try {
-      return new URL(configured)
+      return new URL(configured.startsWith('http') ? configured : `https://${configured}`)
     } catch {
       // Invalid deployment configuration falls back safely instead of breaking metadata rendering.
+    }
+  }
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL
+  if (vercelUrl) {
+    try {
+      return new URL(vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`)
+    } catch {
+      // Invalid vercel url fallback
     }
   }
   return new URL('http://localhost:3000')

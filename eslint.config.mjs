@@ -5,5 +5,12 @@ import nextTs from 'eslint-config-next/typescript'
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores(['.next/**', 'out/**', 'coverage/**', 'next-env.d.ts']),
+  {
+    settings: {
+      react: {
+        version: '19.0',
+      },
+    },
+  },
+  globalIgnores(['.next/**', 'out/**', 'coverage/**', 'next-env.d.ts', '.domain-dist/**', 'scripts/**']),
 ])

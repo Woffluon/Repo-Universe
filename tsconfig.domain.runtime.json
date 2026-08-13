@@ -5,7 +5,7 @@
     "strict": true,
     "skipLibCheck": true,
     "module": "CommonJS",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "rootDir": ".",
     "outDir": ".domain-dist",
     "noEmit": false

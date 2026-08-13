@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
-import { createSeededRandom, deriveSeed } from '@/lib/universe/seed'
+import { createSeededRandom } from '@/lib/universe/seed'
 import type { GraphicsQuality, UniverseModel } from '@/lib/universe/types'
 
 export type UniverseHover = {
@@ -20,7 +20,7 @@ export type UniverseEngineOptions = {
   onContextLost: () => void
 }
 
-type InteractiveObject = THREE.Object3D & { userData: { bodyId?: string } }
+type InteractiveObject = THREE.Mesh & { userData: { bodyId?: string } }
 
 type PlanetRuntime = {
   mesh: THREE.Mesh

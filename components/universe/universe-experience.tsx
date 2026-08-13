@@ -79,11 +79,13 @@ function resolveAutoQuality(reducedMotion: boolean): GraphicsQuality {
 export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
   const model = useMemo(() => createUniverseModel(data), [data])
   const reducedMotion = useReducedMotion()
-  const [qualityPreference, setQualityPreference] = useState<GraphicsQuality>('auto')
-  const [resolvedAutoQuality, setResolvedAutoQuality] = useState<GraphicsQuality>('auto')
+  const [qualityPreference, setQualityPreference] = useState<GraphicsQuality>(initialQuality)
+  const resolvedAutoQuality = useMemo(() => resolveAutoQuality(reducedMotion), [reducedMotion])
   const [api, setApi] = useState<UniverseCanvasApi | null>(null)
   const [paused, setPaused] = useState(false)
-  const [inspectorOpen, setInspectorOpen] = useState(false)
+  const [inspectorOpen, setInspectorOpen] = useState(() =>
+    typeof window !== 'undefined' ? !window.matchMedia('(max-width: 700px)').matches : false
+  )
   const [tab, setTab] = useState<InspectorTab>('overview')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [hover, setHover] = useState<UniverseHover>(null)
@@ -91,11 +93,6 @@ export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
   const [shared, setShared] = useState(false)
   const router = useRouter()
 
-  useEffect(() => setQualityPreference(initialQuality()), [])
-  useEffect(() => {
-    setInspectorOpen(!window.matchMedia('(max-width: 700px)').matches)
-  }, [])
-  useEffect(() => setResolvedAutoQuality(resolveAutoQuality(reducedMotion)), [reducedMotion])
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || document.querySelector('[role="dialog"]')) return
