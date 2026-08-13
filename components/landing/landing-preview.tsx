@@ -1,4 +1,6 @@
-export function LandingPreview() {
+import { type Locale, t } from '@/lib/i18n'
+
+export function LandingPreview({ locale }: { locale: Locale }) {
   return (
     <div className="landing-preview" aria-hidden="true">
       <div className="preview-stars" />
@@ -21,7 +23,7 @@ export function LandingPreview() {
       <div className="preview-signal preview-signal-c" />
 
       <div className="preview-object-label preview-repository-label">
-        <span>Repository star</span>
+        <span>{t(locale, 'preview.repositoryStar')}</span>
         <strong>facebook/react</strong>
       </div>
       <div className="preview-object-label preview-language-label preview-language-a">
@@ -34,9 +36,9 @@ export function LandingPreview() {
       </div>
 
       <div className="preview-readout">
-        <span>8 planets</span>
-        <span>18 contributor signals</span>
-        <span>deterministic system</span>
+        <span>{t(locale, 'preview.planets', { count: 8 })}</span>
+        <span>{t(locale, 'preview.contributorSignals', { count: 18 })}</span>
+        <span>{t(locale, 'preview.deterministic')}</span>
       </div>
     </div>
   )

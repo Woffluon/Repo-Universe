@@ -8,15 +8,20 @@ import type { RepositoryUniverseData } from '@/lib/universe/types'
 import { GithubDataError } from '@/lib/github/errors'
 import { parseRepositoryInput } from '@/lib/repository-input'
 import { canonicalRepositoryPath, getSiteUrl } from '@/lib/site'
+import { t } from '@/lib/i18n'
+import { getLocale } from '@/lib/locale'
+
+export const instant = false
 
 export type RepositoryPageProps = {
   params: Promise<{ owner: string; repo: string }>
 }
 
 export async function generateMetadata({ params }: RepositoryPageProps): Promise<Metadata> {
+  const locale = await getLocale()
   const { owner, repo } = await params
   const parsed = parseRepositoryInput(`${owner}/${repo}`)
-  if (!parsed.ok) return { title: 'Repository unavailable' }
+  if (!parsed.ok) return { title: t(locale, 'failure.eyebrow') }
 
   try {
     const data = await getRepositoryUniverseData(parsed.value.owner, parsed.value.repo)
@@ -37,26 +42,28 @@ export async function generateMetadata({ params }: RepositoryPageProps): Promise
   }
 }
 
-function Failure({ kind }: { kind: GithubDataError['kind'] }) {
+async function Failure({ kind }: { kind: GithubDataError['kind'] }) {
+  const locale = await getLocale()
   const copy =
     kind === 'configuration'
-      ? 'The server is missing its GitHub API configuration.'
+      ? t(locale, 'failure.configuration')
       : kind === 'rate-limit'
-        ? 'GitHub API capacity is temporarily exhausted. Cached universes remain available when present.'
-        : 'GitHub could not return this repository right now.'
+        ? t(locale, 'failure.rateLimit')
+        : t(locale, 'failure.unavailable')
 
   return (
     <main className="status-page">
       <WarningCircle size={32} aria-hidden="true" />
-      <p className="eyebrow">UNIVERSE UNAVAILABLE</p>
-      <h1>Mapping interrupted.</h1>
+      <p className="eyebrow">{t(locale, 'failure.eyebrow')}</p>
+      <h1>{t(locale, 'failure.title')}</h1>
       <p>{copy}</p>
-      <Link href="/" className="button-secondary"><ArrowLeft size={18} aria-hidden="true" /> Try another repository</Link>
+      <Link href="/" className="button-secondary"><ArrowLeft size={18} aria-hidden="true" /> {t(locale, 'failure.back')}</Link>
     </main>
   )
 }
 
 export default async function RepositoryPage({ params }: RepositoryPageProps) {
+  const locale = await getLocale()
   const { owner, repo } = await params
   const parsed = parseRepositoryInput(`${owner}/${repo}`)
   if (!parsed.ok) notFound()
@@ -72,5 +79,5 @@ export default async function RepositoryPage({ params }: RepositoryPageProps) {
     return <Failure kind="unavailable" />
   }
 
-  return <UniverseExperience data={data} />
+  return <UniverseExperience data={data} locale={locale} />
 }

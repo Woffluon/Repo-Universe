@@ -14,18 +14,20 @@ import {
   WarningCircle,
 } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
+import { type Locale, t } from '@/lib/i18n'
 import { formatBytes, formatCompactNumber, formatDate } from '@/lib/universe/format'
 import type { RepositoryUniverseData } from '@/lib/universe/types'
 
 export type InspectorTab = 'overview' | 'languages' | 'contributors'
 
-function repositoryAge(createdAt: string, fetchedAt: string): string {
+function repositoryAge(createdAt: string, fetchedAt: string, locale: Locale): string {
   const years = Math.max(0, (new Date(fetchedAt).getTime() - new Date(createdAt).getTime()) / 31_557_600_000)
-  return years < 1 ? '< 1 year' : `${years.toFixed(years >= 10 ? 0 : 1)} years`
+  return years < 1 ? t(locale, 'format.lessThanYear') : t(locale, 'format.years', { count: new Intl.NumberFormat(locale === 'tr' ? 'tr-TR' : 'en-US', { maximumFractionDigits: years >= 10 ? 0 : 1 }).format(years) })
 }
 
 export function RepositoryInspector({
   data,
+  locale,
   tab,
   onTabChange,
   selectedId,
@@ -33,6 +35,7 @@ export function RepositoryInspector({
   sceneContributorCount,
 }: {
   data: RepositoryUniverseData
+  locale: Locale
   tab: InspectorTab
   onTabChange: (tab: InspectorTab) => void
   selectedId: string | null
@@ -58,7 +61,7 @@ export function RepositoryInspector({
 
   return (
     <div className="inspector-content">
-      <div className="inspector-tabs" role="tablist" aria-label="Repository details">
+      <div className="inspector-tabs" role="tablist" aria-label={t(locale, 'inspector.details')}>
         {(['overview', 'languages', 'contributors'] as const).map((value) => (
           <button
             key={value}
@@ -68,7 +71,7 @@ export function RepositoryInspector({
             className={tab === value ? 'active' : undefined}
             onClick={() => onTabChange(value)}
           >
-            {value[0].toUpperCase() + value.slice(1)}
+            {t(locale, `inspector.${value}` as 'inspector.overview' | 'inspector.languages' | 'inspector.contributors')}
           </button>
         ))}
       </div>
@@ -77,73 +80,73 @@ export function RepositoryInspector({
         <div className="inspector-panel" role="tabpanel">
           {repo.archived && (
             <div className="archived-note">
-              <WarningCircle size={16} /> Archived repository
+              <WarningCircle size={16} /> {t(locale, 'inspector.archived')}
             </div>
           )}
 
           <button type="button" className="repository-focus-card" onClick={() => onFocus('repository')}>
-            <span>Repository star</span>
+            <span>{t(locale, 'universe.repositoryStar')}</span>
             <strong>{repo.fullName}</strong>
-            <p>{repo.description || 'GitHub does not provide a repository description.'}</p>
+            <p>{repo.description || t(locale, 'universe.noDescription')}</p>
           </button>
 
-          <div className="overview-metrics" aria-label="Repository metrics">
+          <div className="overview-metrics" aria-label={t(locale, 'inspector.metrics')}>
             <div>
-              <span><Star size={15} weight="fill" /> Stars</span>
-              <strong>{formatCompactNumber(repo.stars)}</strong>
+              <span><Star size={15} weight="fill" /> {t(locale, 'universe.stars')}</span>
+              <strong>{formatCompactNumber(repo.stars, locale)}</strong>
             </div>
             <div>
-              <span><GitFork size={15} /> Forks</span>
-              <strong>{formatCompactNumber(repo.forks)}</strong>
+              <span><GitFork size={15} /> {t(locale, 'universe.forks')}</span>
+              <strong>{formatCompactNumber(repo.forks, locale)}</strong>
             </div>
             <div>
-              <span>Issues</span>
-              <strong>{formatCompactNumber(repo.openIssues)}</strong>
+              <span>{t(locale, 'inspector.issues')}</span>
+              <strong>{formatCompactNumber(repo.openIssues, locale)}</strong>
             </div>
             <div>
-              <span><GitPullRequest size={15} /> Pull requests</span>
-              <strong>{formatCompactNumber(repo.openPullRequests)}</strong>
+              <span><GitPullRequest size={15} /> {t(locale, 'inspector.pullRequests')}</span>
+              <strong>{formatCompactNumber(repo.openPullRequests, locale)}</strong>
             </div>
           </div>
 
           <div className="repository-facts">
             <div className="fact-group">
-              <div className="fact-heading"><GitBranch size={15} /> Source</div>
+              <div className="fact-heading"><GitBranch size={15} /> {t(locale, 'inspector.source')}</div>
               <dl>
-                <div><dt>Default branch</dt><dd>{repo.defaultBranch || 'Not reported'}</dd></div>
-                <div><dt>License</dt><dd>{repo.license?.spdxId || repo.license?.name || 'Not reported'}</dd></div>
-                <div><dt>Repository size</dt><dd>{repo.size == null ? 'Not reported' : formatBytes(repo.size)}</dd></div>
+                <div><dt>{t(locale, 'inspector.defaultBranch')}</dt><dd>{repo.defaultBranch || t(locale, 'inspector.notReported')}</dd></div>
+                <div><dt>{t(locale, 'inspector.license')}</dt><dd>{repo.license?.spdxId || repo.license?.name || t(locale, 'inspector.notReported')}</dd></div>
+                <div><dt>{t(locale, 'inspector.repositorySize')}</dt><dd>{repo.size == null ? t(locale, 'inspector.notReported') : formatBytes(repo.size)}</dd></div>
               </dl>
             </div>
             <div className="fact-group">
-              <div className="fact-heading"><CalendarBlank size={15} /> Timeline</div>
+              <div className="fact-heading"><CalendarBlank size={15} /> {t(locale, 'inspector.timeline')}</div>
               <dl>
-                <div><dt>Created</dt><dd>{formatDate(repo.createdAt)}</dd></div>
-                <div><dt>Age</dt><dd>{repositoryAge(repo.createdAt, data.fetchedAt)}</dd></div>
-                <div><dt>Last push</dt><dd>{formatDate(repo.pushedAt)}</dd></div>
+                <div><dt>{t(locale, 'inspector.created')}</dt><dd>{formatDate(repo.createdAt, locale)}</dd></div>
+                <div><dt>{t(locale, 'inspector.age')}</dt><dd>{repositoryAge(repo.createdAt, data.fetchedAt, locale)}</dd></div>
+                <div><dt>{t(locale, 'inspector.lastPush')}</dt><dd>{formatDate(repo.pushedAt, locale)}</dd></div>
               </dl>
             </div>
           </div>
 
           {repo.parent && (
             <div className="inspector-inline-note">
-              Forked from <a href={repo.parent.url} target="_blank" rel="noreferrer">{repo.parent.fullName}</a>
+              {t(locale, 'inspector.forkedFrom')} <a href={repo.parent.url} target="_blank" rel="noreferrer">{repo.parent.fullName}</a>
             </div>
           )}
           {repo.latestRelease && (
             <div className="inspector-inline-note">
-              Latest release <a href={repo.latestRelease.url} target="_blank" rel="noreferrer">{repo.latestRelease.tagName}</a>
+              {t(locale, 'inspector.latestRelease')} <a href={repo.latestRelease.url} target="_blank" rel="noreferrer">{repo.latestRelease.tagName}</a>
             </div>
           )}
 
           {repo.topics.length > 0 && (
-            <div className="topic-list" aria-label="Repository topics">
+            <div className="topic-list" aria-label={t(locale, 'inspector.topics')}>
               {repo.topics.map((topic) => <span key={topic}>{topic}</span>)}
             </div>
           )}
 
           <a className="inspector-link" href={repo.url} target="_blank" rel="noreferrer">
-            Open on GitHub <ArrowSquareOut size={16} />
+            {t(locale, 'universe.openGithub')} <ArrowSquareOut size={16} />
           </a>
         </div>
       )}
@@ -153,13 +156,13 @@ export function RepositoryInspector({
           <div className="panel-intro">
             <Code size={17} />
             <div>
-              <strong>Language system</strong>
-              <span>Up to 8 dominant languages are loaded and visualized. Smaller languages may not appear.</span>
+              <strong>{t(locale, 'inspector.languageSystem')}</strong>
+              <span>{t(locale, 'inspector.languageSystemText')}</span>
             </div>
           </div>
 
           {data.languages.length === 0 ? (
-            <p className="empty-detail">GitHub reports no language data for this repository.</p>
+            <p className="empty-detail">{t(locale, 'inspector.noLanguages')}</p>
           ) : (
             <div className="object-list language-list">
               {data.languages.map((language, index) => {
@@ -191,10 +194,8 @@ export function RepositoryInspector({
           <div className="panel-intro contributors-intro">
             <UsersThree size={17} />
             <div>
-              <strong>Contributor signals</strong>
-              <span>
-                Partial dataset: up to 100 non-anonymous contributors are loaded from GitHub, and only the first {sceneContributorCount} are rendered as 3D signals. Large repositories may have additional contributors that are not shown here.
-              </span>
+              <strong>{t(locale, 'inspector.contributorSignals')}</strong>
+              <span>{t(locale, 'inspector.contributorSignalsText', { count: sceneContributorCount })}</span>
             </div>
           </div>
 
@@ -203,25 +204,25 @@ export function RepositoryInspector({
               <Image src={selectedContributor.avatarUrl} alt="" width={42} height={42} className="contributor-avatar" unoptimized />
               <div>
                 <strong>{selectedContributor.username}</strong>
-                <span>{formatCompactNumber(selectedContributor.contributions)} contributions</span>
+                <span>{t(locale, 'inspector.contributions', { count: formatCompactNumber(selectedContributor.contributions, locale) })}</span>
               </div>
-              <a href={selectedContributor.profileUrl} target="_blank" rel="noreferrer" aria-label={`Open ${selectedContributor.username} on GitHub`}>
+              <a href={selectedContributor.profileUrl} target="_blank" rel="noreferrer" aria-label={t(locale, 'inspector.openContributor', { username: selectedContributor.username })}>
                 <ArrowSquareOut size={16} />
               </a>
             </div>
           )}
 
           {data.contributors.length === 0 ? (
-            <p className="empty-detail">No contributor signals are available for this repository.</p>
+            <p className="empty-detail">{t(locale, 'inspector.noContributors')}</p>
           ) : (
             <>
               <label className="contributor-search">
                 <MagnifyingGlass size={15} />
-                <span className="sr-only">Filter contributors</span>
+                <span className="sr-only">{t(locale, 'inspector.filterContributors')}</span>
                 <input
                   value={contributorQuery}
                   onChange={(event) => setContributorQuery(event.target.value)}
-                  placeholder="Filter loaded contributors"
+                  placeholder={t(locale, 'inspector.filterPlaceholder')}
                 />
               </label>
 
@@ -235,16 +236,16 @@ export function RepositoryInspector({
                       key={contributor.username}
                       className={selectedId === id ? 'object-row selected' : 'object-row'}
                       onClick={() => onFocus(id)}
-                      title={renderedInScene ? 'Focus contributor signal' : 'Loaded in inspector, not rendered as a scene signal'}
+                      title={renderedInScene ? t(locale, 'inspector.focusSignal') : t(locale, 'inspector.loadedOnly')}
                     >
                       <span className="object-index">{String(data.contributors.indexOf(contributor) + 1).padStart(2, '0')}</span>
                       <Image src={contributor.avatarUrl} alt="" width={32} height={32} className="contributor-avatar" unoptimized />
                       <span className="object-copy">
                         <strong>{contributor.username}</strong>
-                        <small>{formatCompactNumber(contributor.contributions)} contributions</small>
+                        <small>{t(locale, 'inspector.contributions', { count: formatCompactNumber(contributor.contributions, locale) })}</small>
                       </span>
                       <span className={renderedInScene ? 'scene-presence active' : 'scene-presence'}>
-                        {renderedInScene ? 'Signal' : 'Data'}
+                        {renderedInScene ? t(locale, 'inspector.signal') : t(locale, 'inspector.data')}
                       </span>
                     </button>
                   )
@@ -253,12 +254,12 @@ export function RepositoryInspector({
 
               {hiddenContributorCount > 0 && (
                 <button type="button" className="show-more-button" onClick={() => setShowAllContributors(true)}>
-                  Show {hiddenContributorCount} more
+                  {t(locale, 'inspector.more', { count: hiddenContributorCount })}
                 </button>
               )}
               {showAllContributors && filteredContributors.length > 24 && (
                 <button type="button" className="show-more-button" onClick={() => setShowAllContributors(false)}>
-                  Show top 24
+                  {t(locale, 'inspector.top24')}
                 </button>
               )}
             </>
@@ -267,10 +268,8 @@ export function RepositoryInspector({
       )}
 
       <details className="data-coverage">
-        <summary>Data coverage</summary>
-        <p>
-          Repo Universe intentionally uses a bounded GitHub dataset instead of mirroring every record. It loads up to 8 dominant languages, up to 20 topics, and up to 100 non-anonymous contributors. The 3D scene renders at most 18 contributor signals, so large repositories can contain additional languages, topics, or contributors that are not shown in the visualization.
-        </p>
+        <summary>{t(locale, 'inspector.coverage')}</summary>
+        <p>{t(locale, 'inspector.coverageText')}</p>
       </details>
     </div>
   )

@@ -21,8 +21,9 @@ import { useRouter } from 'next/navigation'
 import { Brand } from '@/components/ui/logo'
 import { RepositorySearch } from '@/components/repository-search/repository-search'
 import { RepositoryInspector, type InspectorTab } from '@/components/inspector/repository-inspector'
+import { type Locale, t } from '@/lib/i18n'
 import { createUniverseModel } from '@/lib/universe/model'
-import { formatBytes, formatCompactNumber, formatDate } from '@/lib/universe/format'
+import { formatBytes, formatCompactNumber, formatDate, formatPercentage } from '@/lib/universe/format'
 import type { GraphicsQuality, RepositoryUniverseData } from '@/lib/universe/types'
 import { UniverseCanvas, type UniverseCanvasApi } from './universe-canvas'
 import { UniverseFallback } from './universe-fallback'
@@ -76,16 +77,14 @@ function resolveAutoQuality(reducedMotion: boolean): GraphicsQuality {
   return mobile || dpr > 2.2 || cores <= 4 ? 'low' : 'auto'
 }
 
-export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
+export function UniverseExperience({ data, locale }: { data: RepositoryUniverseData; locale: Locale }) {
   const model = useMemo(() => createUniverseModel(data), [data])
   const reducedMotion = useReducedMotion()
   const [qualityPreference, setQualityPreference] = useState<GraphicsQuality>(initialQuality)
   const resolvedAutoQuality = useMemo(() => resolveAutoQuality(reducedMotion), [reducedMotion])
   const [api, setApi] = useState<UniverseCanvasApi | null>(null)
   const [paused, setPaused] = useState(false)
-  const [inspectorOpen, setInspectorOpen] = useState(() =>
-    typeof window !== 'undefined' ? !window.matchMedia('(max-width: 700px)').matches : false
-  )
+  const [inspectorOpen, setInspectorOpen] = useState(false)
   const [tab, setTab] = useState<InspectorTab>('overview')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [hover, setHover] = useState<UniverseHover>(null)
@@ -102,6 +101,11 @@ export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [api])
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setInspectorOpen(!window.matchMedia('(max-width: 700px)').matches))
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
 
   const actualQuality = qualityPreference === 'auto' ? resolvedAutoQuality : qualityPreference
   const primaryLanguage = data.languages[0]
@@ -152,13 +156,13 @@ export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
   }
 
   function tooltipLabel(id: string): string {
-    if (id === 'repository') return `${data.repository.fullName} / ${formatCompactNumber(data.repository.stars)} stars`
+    if (id === 'repository') return `${data.repository.fullName} / ${formatCompactNumber(data.repository.stars, locale)} ${t(locale, 'universe.stars')}`
     if (id.startsWith('language:')) {
       const language = data.languages.find((entry) => `language:${entry.name}` === id)
-      return language ? `${language.name} / ${language.percentage.toFixed(1)}% / ${formatBytes(language.bytes)}` : id
+      return language ? `${language.name} / ${formatPercentage(language.percentage, locale)}% / ${formatBytes(language.bytes)}` : id
     }
     const contributor = data.contributors.find((entry) => `contributor:${entry.username}` === id)
-    return contributor ? `${contributor.username} / ${formatCompactNumber(contributor.contributions)} contributions` : id
+    return contributor ? `${contributor.username} / ${t(locale, 'inspector.contributions', { count: formatCompactNumber(contributor.contributions, locale) })}` : id
   }
 
   return (
@@ -166,10 +170,11 @@ export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
       <main className="universe-page" style={pageStyle}>
         <div className="universe-scene">
           {fallback ? (
-            <UniverseFallback data={data} model={model} />
+            <UniverseFallback data={data} locale={locale} model={model} />
           ) : (
             <UniverseCanvas
               model={model}
+              locale={locale}
               quality={actualQuality}
               reducedMotion={reducedMotion}
               onHover={onHover}
@@ -182,7 +187,7 @@ export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
 
         <header className="universe-navigation">
           <div className="nav-island nav-repository-island">
-            <button type="button" className="brand-button" onClick={() => router.push('/')} aria-label="Repo Universe home">
+            <button type="button" className="brand-button" onClick={() => router.push('/')} aria-label={t(locale, 'nav.home')}>
               <Brand compact />
             </button>
             <span className="nav-separator" />
@@ -190,7 +195,7 @@ export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
               <span>{data.repository.owner}</span>
               <strong>{data.repository.name}</strong>
             </button>
-            {data.repository.archived && <span className="archived-badge">Archived</span>}
+            {data.repository.archived && <span className="archived-badge">{t(locale, 'universe.archived')}</span>}
           </div>
 
           <div className="nav-island nav-action-island">
@@ -198,106 +203,107 @@ export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
                   <Dialog.Trigger asChild>
-                    <button type="button" className="icon-button" aria-label="Search repositories"><MagnifyingGlass size={18} /></button>
+                    <button type="button" className="icon-button" aria-label={t(locale, 'universe.searchRepositories')}><MagnifyingGlass size={18} /></button>
                   </Dialog.Trigger>
                 </Tooltip.Trigger>
-                <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>Search repository</Tooltip.Content></Tooltip.Portal>
+                <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>{t(locale, 'universe.searchRepository')}</Tooltip.Content></Tooltip.Portal>
               </Tooltip.Root>
               <Dialog.Portal>
                 <Dialog.Overlay className="dialog-overlay" />
                 <Dialog.Content className="search-dialog">
                   <div className="dialog-heading">
-                    <div><span>Explore repository</span><Dialog.Title>Map another universe</Dialog.Title></div>
-                    <Dialog.Close className="icon-button"><X size={18} /><span className="sr-only">Close</span></Dialog.Close>
+                    <div><span>{t(locale, 'universe.exploreRepository')}</span><Dialog.Title>{t(locale, 'universe.mapAnother')}</Dialog.Title></div>
+                    <Dialog.Close className="icon-button"><X size={18} /><span className="sr-only">{t(locale, 'universe.close')}</span></Dialog.Close>
                   </div>
-                  <Dialog.Description>Enter a public GitHub repository name or URL.</Dialog.Description>
-                  <RepositorySearch compact autoFocus />
+                  <Dialog.Description>{t(locale, 'universe.enterRepository')}</Dialog.Description>
+                  <RepositorySearch locale={locale} compact autoFocus />
                 </Dialog.Content>
               </Dialog.Portal>
             </Dialog.Root>
 
             <Tooltip.Root>
-              <Tooltip.Trigger asChild><button type="button" className="icon-button" onClick={() => void share()} aria-label="Share universe"><ShareNetwork size={18} /></button></Tooltip.Trigger>
-              <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>{shared ? 'Copied' : 'Share'}</Tooltip.Content></Tooltip.Portal>
+              <Tooltip.Trigger asChild><button type="button" className="icon-button" onClick={() => void share()} aria-label={t(locale, 'universe.shareLabel')}><ShareNetwork size={18} /></button></Tooltip.Trigger>
+              <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>{shared ? t(locale, 'universe.copied') : t(locale, 'universe.share')}</Tooltip.Content></Tooltip.Portal>
             </Tooltip.Root>
 
-            <a className="icon-button desktop-github" href={data.repository.url} target="_blank" rel="noreferrer" aria-label="Open on GitHub">
+            <a className="icon-button desktop-github" href={data.repository.url} target="_blank" rel="noreferrer" aria-label={t(locale, 'universe.openGithub')}>
               <ArrowSquareOut size={18} />
             </a>
-            <button type="button" className="icon-button" onClick={() => setInspectorOpen((value) => !value)} aria-label="Toggle repository inspector">
+            <button type="button" className="icon-button" onClick={() => setInspectorOpen((value) => !value)} aria-label={t(locale, 'universe.toggleInspector')}>
               <SidebarSimple size={18} />
             </button>
           </div>
         </header>
 
-        <section className="system-brief" aria-label="Repository summary">
+        <section className="system-brief" aria-label={t(locale, 'universe.summary')}>
           <div className="system-brief-heading">
-            <span>Repository star</span>
+            <span>{t(locale, 'universe.repositoryStar')}</span>
             <h1>{data.repository.fullName}</h1>
           </div>
-          <p>{data.repository.description || 'GitHub does not provide a description for this repository.'}</p>
+          <p>{data.repository.description || t(locale, 'universe.noDescription')}</p>
           <div className="system-brief-metrics">
-            <div><span><Star size={14} weight="fill" /> Stars</span><strong>{formatCompactNumber(data.repository.stars)}</strong></div>
-            <div><span><GitFork size={14} /> Forks</span><strong>{formatCompactNumber(data.repository.forks)}</strong></div>
-            <div><span>Activity</span><strong>{Math.round(data.activity.score * 100)}%</strong></div>
+            <div><span><Star size={14} weight="fill" /> {t(locale, 'universe.stars')}</span><strong>{formatCompactNumber(data.repository.stars, locale)}</strong></div>
+            <div><span><GitFork size={14} /> {t(locale, 'universe.forks')}</span><strong>{formatCompactNumber(data.repository.forks, locale)}</strong></div>
+            <div><span>{t(locale, 'universe.activity')}</span><strong>{formatPercentage(Math.round(data.activity.score * 100), locale)}%</strong></div>
           </div>
           <div className="system-brief-foot">
-            <span><Code size={14} /> {primaryLanguage ? `${primaryLanguage.name} ${primaryLanguage.percentage.toFixed(1)}%` : 'No language data'}</span>
-            <span>Last push {formatDate(data.repository.pushedAt)}</span>
+            <span><Code size={14} /> {primaryLanguage ? `${primaryLanguage.name} ${formatPercentage(primaryLanguage.percentage, locale)}%` : t(locale, 'universe.noLanguageData')}</span>
+            <span>{t(locale, 'universe.lastPush', { date: formatDate(data.repository.pushedAt, locale) })}</span>
           </div>
         </section>
 
-        <div className="scene-control-stack" aria-label="Universe controls">
+        <div className="scene-control-stack" aria-label={t(locale, 'universe.controls')}>
           <div className="control-island">
             <Tooltip.Root>
-              <Tooltip.Trigger asChild><button type="button" className="icon-button" onClick={() => api?.reset()} aria-label="Reset camera"><Target size={18} /></button></Tooltip.Trigger>
-              <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>Reset camera</Tooltip.Content></Tooltip.Portal>
+              <Tooltip.Trigger asChild><button type="button" className="icon-button" onClick={() => api?.reset()} aria-label={t(locale, 'universe.resetCamera')}><Target size={18} /></button></Tooltip.Trigger>
+              <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>{t(locale, 'universe.resetCamera')}</Tooltip.Content></Tooltip.Portal>
             </Tooltip.Root>
             <Tooltip.Root>
               <Tooltip.Trigger asChild>
-                <button type="button" className="icon-button" onClick={() => { const next = !paused; setPaused(next); api?.setPaused(next) }} aria-label={paused ? 'Resume universe' : 'Pause universe'}>
+                <button type="button" className="icon-button" onClick={() => { const next = !paused; setPaused(next); api?.setPaused(next) }} aria-label={paused ? t(locale, 'universe.resumeUniverse') : t(locale, 'universe.pauseUniverse')}>
                   {paused ? <Play size={18} /> : <Pause size={18} />}
                 </button>
               </Tooltip.Trigger>
-              <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>{paused ? 'Resume' : 'Pause'}</Tooltip.Content></Tooltip.Portal>
+              <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>{paused ? t(locale, 'universe.resume') : t(locale, 'universe.pause')}</Tooltip.Content></Tooltip.Portal>
             </Tooltip.Root>
             <Dialog.Root>
               <Tooltip.Root>
-                <Tooltip.Trigger asChild><Dialog.Trigger asChild><button type="button" className="icon-button" aria-label="Graphics settings"><GearSix size={18} /></button></Dialog.Trigger></Tooltip.Trigger>
-                <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>Graphics</Tooltip.Content></Tooltip.Portal>
+                <Tooltip.Trigger asChild><Dialog.Trigger asChild><button type="button" className="icon-button" aria-label={t(locale, 'universe.graphicsSettings')}><GearSix size={18} /></button></Dialog.Trigger></Tooltip.Trigger>
+                <Tooltip.Portal><Tooltip.Content className="radix-tooltip" sideOffset={8}>{t(locale, 'universe.graphics')}</Tooltip.Content></Tooltip.Portal>
               </Tooltip.Root>
               <Dialog.Portal>
                 <Dialog.Overlay className="dialog-overlay" />
                 <Dialog.Content className="settings-dialog">
                   <div className="dialog-heading">
-                    <div><span>Rendering</span><Dialog.Title>Graphics quality</Dialog.Title></div>
-                    <Dialog.Close className="icon-button"><X size={18} /><span className="sr-only">Close</span></Dialog.Close>
+                    <div><span>{t(locale, 'universe.rendering')}</span><Dialog.Title>{t(locale, 'universe.graphicsQuality')}</Dialog.Title></div>
+                    <Dialog.Close className="icon-button"><X size={18} /><span className="sr-only">{t(locale, 'universe.close')}</span></Dialog.Close>
                   </div>
-                  <Dialog.Description>Choose how much GPU work Repo Universe may use.</Dialog.Description>
+                  <Dialog.Description>{t(locale, 'universe.graphicsDescription')}</Dialog.Description>
                   <div className="quality-options">
                     {(['auto', 'high', 'low'] as const).map((value) => (
                       <button type="button" key={value} className={qualityPreference === value ? 'selected' : undefined} onClick={() => updateQuality(value)}>
-                        <strong>{value[0].toUpperCase() + value.slice(1)}</strong>
-                        <span>{value === 'auto' ? 'Adapts to device and motion preference.' : value === 'high' ? 'Richer particles, bloom and a higher DPR cap.' : 'Lower DPR and reduced scene complexity.'}</span>
+                        <strong>{t(locale, `universe.${value}` as 'universe.auto' | 'universe.high' | 'universe.low')}</strong>
+                        <span>{value === 'auto' ? t(locale, 'universe.autoText') : value === 'high' ? t(locale, 'universe.highText') : t(locale, 'universe.lowText')}</span>
                       </button>
                     ))}
                   </div>
-                  {reducedMotion && <p className="settings-note">Reduced motion is enabled by your operating system. Orbital animation is minimized.</p>}
+                  {reducedMotion && <p className="settings-note">{t(locale, 'universe.reducedMotion')}</p>}
                 </Dialog.Content>
               </Dialog.Portal>
             </Dialog.Root>
           </div>
-          <div className="control-help desktop-only">Drag to orbit / wheel to zoom / select a body</div>
+          <div className="control-help desktop-only">{t(locale, 'universe.controlHelp')}</div>
         </div>
 
         {inspectorOpen && (
-          <aside className="repository-inspector" aria-label="Repository inspector">
+          <aside className="repository-inspector" aria-label={t(locale, 'universe.repositoryInspector')}>
             <div className="inspector-heading">
-              <div><span>Repository inspector</span><strong>{data.repository.fullName}</strong></div>
-              <button type="button" className="icon-button" onClick={() => setInspectorOpen(false)} aria-label="Close inspector"><X size={17} /></button>
+              <div><span>{t(locale, 'universe.repositoryInspector')}</span><strong>{data.repository.fullName}</strong></div>
+              <button type="button" className="icon-button" onClick={() => setInspectorOpen(false)} aria-label={t(locale, 'universe.closeInspector')}><X size={17} /></button>
             </div>
             <RepositoryInspector
               data={data}
+              locale={locale}
               tab={tab}
               onTabChange={setTab}
               selectedId={selectedId}
@@ -309,19 +315,19 @@ export function UniverseExperience({ data }: { data: RepositoryUniverseData }) {
 
         {!inspectorOpen && (
           <button type="button" className="mobile-inspector-trigger" onClick={() => setInspectorOpen(true)}>
-            <SidebarSimple size={17} /> Inspector
+            <SidebarSimple size={17} /> {t(locale, 'universe.inspector')}
           </button>
         )}
 
         <div className="scene-readout" aria-hidden="true">
-          <span>{model.planets.length} planets</span>
-          <span>{model.contributors.length} contributor signals</span>
-          <span>{data.contributors.length} contributors loaded (max 100)</span>
-          <span>{actualQuality.toUpperCase()} render</span>
+          <span>{t(locale, 'universe.planets', { count: model.planets.length })}</span>
+          <span>{t(locale, 'universe.contributorSignals', { count: model.contributors.length })}</span>
+          <span>{t(locale, 'universe.contributorsLoaded', { count: data.contributors.length })}</span>
+          <span>{t(locale, 'universe.render', { quality: t(locale, `universe.${actualQuality}` as 'universe.auto' | 'universe.high' | 'universe.low') })}</span>
         </div>
 
         {hover && !fallback && <div className="scene-tooltip" style={{ left: hover.x + 14, top: hover.y + 14 }}>{tooltipLabel(hover.id)}</div>}
-        {shared && <div className="toast" role="status">Universe link copied.</div>}
+        {shared && <div className="toast" role="status">{t(locale, 'universe.linkCopied')}</div>}
       </main>
     </Tooltip.Provider>
   )

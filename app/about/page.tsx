@@ -2,35 +2,32 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from '@phosphor-icons/react/dist/ssr'
 import { SiteHeader } from '@/components/ui/site-header'
+import { t } from '@/lib/i18n'
+import { getLocale } from '@/lib/locale'
 
-export const metadata: Metadata = {
-  title: 'About',
-  description: 'How Repo Universe turns public GitHub repository data into a deterministic 3D solar system.',
+export const instant = false
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  return { title: t(locale, 'nav.about'), description: t(locale, 'about.lede') }
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const locale = await getLocale()
   return (
     <main className="document-page">
-      <SiteHeader />
+      <SiteHeader locale={locale} />
       <article className="prose-shell">
-        <p className="eyebrow">ABOUT</p>
-        <h1>Code has structure. Repo Universe gives it space.</h1>
-        <p className="prose-lede">
-          Repo Universe is an interactive visualization experiment that maps public repository metadata into a deterministic solar system.
-        </p>
-        <h2>What becomes what</h2>
-        <p>
-          The repository is the central star, languages become planets, top contributors appear as outer-system signals, and fork volume shapes an asteroid belt. Metrics that would become misleading metaphors remain normal data in the inspector.
-        </p>
-        <h2>Deterministic by design</h2>
-        <p>
-          Permanent layout comes from a stable hash of the repository identity and a seeded pseudo-random generator. Reloading the same repository does not create a completely different solar system.
-        </p>
-        <h2>Built around public data</h2>
-        <p>
-          Repo Universe has no account system, database, payments, private-repository access, analytics by default, or AI feature. Repository data is requested server-side from GitHub and cached to reduce API usage.
-        </p>
-        <Link href="/" className="text-link"><ArrowLeft size={18} aria-hidden="true" /> Back to exploration</Link>
+        <p className="eyebrow">{t(locale, 'about.eyebrow')}</p>
+        <h1>{t(locale, 'about.title')}</h1>
+        <p className="prose-lede">{t(locale, 'about.lede')}</p>
+        <h2>{t(locale, 'about.mappingTitle')}</h2>
+        <p>{t(locale, 'about.mappingText')}</p>
+        <h2>{t(locale, 'about.deterministicTitle')}</h2>
+        <p>{t(locale, 'about.deterministicText')}</p>
+        <h2>{t(locale, 'about.dataTitle')}</h2>
+        <p>{t(locale, 'about.dataText')}</p>
+        <Link href="/" className="text-link"><ArrowLeft size={18} aria-hidden="true" /> {t(locale, 'about.back')}</Link>
       </article>
     </main>
   )

@@ -65,6 +65,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .site-nav-island a { min-height: 38px; padding: 0 13px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; gap: 7px; transition: color .45s var(--ease-premium), background .45s var(--ease-premium), transform .45s var(--ease-premium); }
 .site-nav-island a:hover { color: #edf2f6; background: rgba(239, 244, 248, .055); transform: translateY(-1px); }
 .site-nav-island a:active { transform: translateY(1px) scale(.985); }
+.language-switcher { display: inline-flex; align-items: center; gap: 2px; margin-left: 3px; padding-left: 5px; border-left: 1px solid rgba(176, 194, 211, .12); }
+.language-switcher button { min-height: 28px; padding: 0 7px; border: 0; border-radius: var(--radius-pill); background: transparent; color: #78879a; font: inherit; font-size: 11px; cursor: pointer; transition: color .42s var(--ease-premium), background .42s var(--ease-premium), transform .42s var(--ease-premium); }
+.language-switcher button:hover, .language-switcher button.active { color: #edf2f6; background: rgba(239, 244, 248, .07); }
+.language-switcher button:active { transform: scale(.97); }
 
 /* Landing */
 .landing-page {
@@ -400,6 +404,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   .site-brand-island { min-height: 40px; padding: 6px 12px 6px 8px; font-size: 13px; }
   .site-nav-island { min-height: 40px; font-size: 11px; }
   .site-nav-island a { padding-inline: 9px; min-height: 32px; }
+  .language-switcher { margin-left: 0; padding-left: 2px; }
+  .language-switcher button { min-height: 30px; padding-inline: 6px; font-size: 10px; }
   
   .hero { min-height: 0; padding: 48px 0 36px; gap: 24px; }
   .hero h1 {

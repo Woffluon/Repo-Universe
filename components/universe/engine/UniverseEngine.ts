@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { createSeededRandom } from '@/lib/universe/seed'
+import { localeTag, type Locale, t } from '@/lib/i18n'
 import type { GraphicsQuality, UniverseModel } from '@/lib/universe/types'
 
 export type UniverseHover = {
@@ -13,6 +14,7 @@ export type UniverseHover = {
 } | null
 
 export type UniverseEngineOptions = {
+  locale: Locale
   quality: GraphicsQuality
   reducedMotion: boolean
   onHover: (hover: UniverseHover) => void
@@ -324,7 +326,7 @@ export class UniverseEngine {
     const repositoryLabel = document.createElement('div')
     repositoryLabel.className = 'scene-object-label scene-repository-label'
     const repositoryKind = document.createElement('span')
-    repositoryKind.textContent = 'Repository star'
+    repositoryKind.textContent = t(this.options.locale, 'universe.repositoryStar')
     const repositoryName = document.createElement('strong')
     repositoryName.textContent = this.model.star.label
     repositoryLabel.append(repositoryKind, repositoryName)
@@ -340,7 +342,8 @@ export class UniverseEngine {
       const title = document.createElement('strong')
       title.textContent = planet.language
       const detail = document.createElement('span')
-      detail.textContent = `${planet.percentage.toFixed(1)}% of code`
+      const percentage = new Intl.NumberFormat(localeTag(this.options.locale), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(planet.percentage)
+      detail.textContent = t(this.options.locale, 'universe.codePercent', { percentage })
       label.append(title, detail)
 
       this.labelLayer.appendChild(label)

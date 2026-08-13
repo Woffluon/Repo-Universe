@@ -1,5 +1,7 @@
-export function formatCompactNumber(value: number): string {
-  return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+import { localeTag, type Locale, t } from '../i18n'
+
+export function formatCompactNumber(value: number, locale: Locale = 'en'): string {
+  return new Intl.NumberFormat(localeTag(locale), { notation: 'compact', maximumFractionDigits: 1 }).format(value)
 }
 
 export function formatBytes(bytes: number): string {
@@ -14,7 +16,11 @@ export function formatBytes(bytes: number): string {
   return `${value.toFixed(value >= 100 ? 0 : value >= 10 ? 1 : 2)} ${unit}`
 }
 
-export function formatDate(value: string | null): string {
-  if (!value) return 'Unknown'
-  return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(new Date(value))
+export function formatPercentage(value: number, locale: Locale = 'en'): string {
+  return new Intl.NumberFormat(localeTag(locale), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)
+}
+
+export function formatDate(value: string | null, locale: Locale = 'en'): string {
+  if (!value) return t(locale, 'format.unknown')
+  return new Intl.DateTimeFormat(localeTag(locale), { dateStyle: 'medium' }).format(new Date(value))
 }

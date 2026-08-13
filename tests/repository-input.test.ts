@@ -20,4 +20,8 @@ describe('parseRepositoryInput', () => {
   ])('rejects unsafe or malformed input %s', (input) => {
     expect(parseRepositoryInput(input).ok).toBe(false)
   })
+
+  it('returns localized validation copy', () => {
+    expect(parseRepositoryInput('', 'tr')).toEqual({ ok: false, reason: 'Bir depo girin.' })
+  })
 })

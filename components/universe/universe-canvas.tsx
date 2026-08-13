@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { type Locale, t } from '@/lib/i18n'
 import type { GraphicsQuality, UniverseModel } from '@/lib/universe/types'
 import type { UniverseEngine, UniverseHover } from './engine/UniverseEngine'
 
@@ -12,6 +13,7 @@ export type UniverseCanvasApi = {
 
 export function UniverseCanvas({
   model,
+  locale,
   quality,
   reducedMotion,
   onHover,
@@ -20,6 +22,7 @@ export function UniverseCanvas({
   onUnavailable,
 }: {
   model: UniverseModel
+  locale: Locale
   quality: GraphicsQuality
   reducedMotion: boolean
   onHover: (hover: UniverseHover) => void
@@ -45,6 +48,7 @@ export function UniverseCanvas({
         const engineModule = await import('./engine/UniverseEngine')
         if (cancelled) return
         engine = new engineModule.UniverseEngine(container, model, {
+          locale,
           quality,
           reducedMotion,
           onHover,
@@ -69,11 +73,11 @@ export function UniverseCanvas({
       onReady(null)
       engine?.dispose()
     }
-  }, [model, onHover, onReady, onSelect, onUnavailable, quality, reducedMotion])
+  }, [locale, model, onHover, onReady, onSelect, onUnavailable, quality, reducedMotion])
 
   return (
     <div ref={ref} className="universe-canvas-host">
-      {loading && <div className="scene-loading">Constructing universe…</div>}
+      {loading && <div className="scene-loading">{t(locale, 'universe.sceneLoading')}</div>}
     </div>
   )
 }
